@@ -1,0 +1,11 @@
+echo Creating release file structure
+mkdir -p GameData/SimpleFuelSwitch
+cp ../files/ModuleManager.*.dll GameData
+cp ../files/ModuleManagerLicense.md GameData
+cp ../files/changelog.txt GameData/SimpleFuelSwitch
+cp -R ../files/localization GameData/SimpleFuelSwitch
+cp -R ../files/configs GameData/SimpleFuelSwitch
+cp ../src/bin/Release/SimpleFuelSwitch.dll GameData/SimpleFuelSwitch
+cp ../LICENSE GameData/SimpleFuelSwitch
+cp ../README.md GameData/SimpleFuelSwitch
+echo Done.
