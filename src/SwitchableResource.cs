@@ -80,7 +80,7 @@ namespace SimpleFuelSwitch
                 throw new ArgumentException("No such resource '" + name + "' exists");
             }
             amount = GetRequiredDouble(node, AMOUNT_TAG);
-            if (amount <= 0)
+            if (amount < 0)
             {
                 throw new ArgumentException(AMOUNT_TAG + " must be a positive number");
             }
