@@ -2,6 +2,7 @@ Version 1.0.1 (2018-01-11)
 * Fix a bug that caused hang on startup if a part is configured with resource amount = 0. (Thanks to TheKurgan for reporting.)
 * Fix a bug that caused engineer's report in editor not to be updated properly when switching resources. (Thanks to 4x4cheesecake for reporting, and to DMagic for explaining how to fix.)
 * Update the README.md file in the configs folder with additional explanation. (Thanks to Tyko for requesting clarification.)
+* Added Big-S Delta Wing to the list of LF-only parts that can now be switched to LFO.  (Thanks @4x4cheesecake for suggesting.)
 
 Version 1.0 (2018-01-09)
 * Initial release.

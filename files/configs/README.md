@@ -22,15 +22,15 @@ SimpleFuelSwitch is fairly simple to configure, by design. There are two new Par
 
 For a part to use these modules, it should be set up as follows:
 
-# If the part has any "built-in" resources that you want to be switchable, _remove them_. (They'll be replaced by these new modules.)
-# Add _one_ ModuleSimpleFuelSwitch. (Don't add multiple ones.)
-# Add one ModuleSwitchableResources for each resource option you want to have. Generally you'll always have at least two of these (otherwise there's nothing to "switch").
+1. If the part has any "built-in" resources that you want to be switchable, _remove them_. (They'll be replaced by these new modules.)
+2. Add _one_ ModuleSimpleFuelSwitch. (Don't add multiple ones.)
+3. Add one ModuleSwitchableResources for each resource option you want to have. Generally you'll always have at least two of these (otherwise there's nothing to "switch").
 
 Example:  You want to modify a monoprop tank to be able to choose between monoprop and LFO. You'd use ModuleManager to patch it as follows:
 
-# Delete the monoprop from the part (since these modules will take over).
-# Add a ModuleSimpleFuelSwitch.
-# Add one ModuleSwitchableResources for the monoprop option, and another ModuleSwitchableResources for the LFO option.
+1. Delete the monoprop from the part (since these modules will take over).
+2. Add a ModuleSimpleFuelSwitch.
+3. Add one ModuleSwitchableResources for the monoprop option, and another ModuleSwitchableResources for the LFO option.
 
 Each ModuleSwitchableResources can specify the following:
 
