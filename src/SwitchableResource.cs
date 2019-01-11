@@ -85,7 +85,7 @@ namespace SimpleFuelSwitch
                 throw new ArgumentException(AMOUNT_TAG + " must be a positive number");
             }
             maxAmount = GetRequiredDouble(node, MAX_AMOUNT_TAG);
-            if (maxAmount > amount)
+            if (maxAmount => amount)
             {
                 throw new ArgumentException(MAX_AMOUNT_TAG + " must be greater than or equal to " + AMOUNT_TAG);
             }
