@@ -49,6 +49,13 @@ namespace SimpleFuelSwitch
                     break;
                 }
             }
+
+            // We also need to fire off the "on ship modified" event, so that the engineer
+            // report and any other relevant pieces of KSP UI will update as needed.
+            if (EditorLogic.fetch != null)
+            {
+                GameEvents.onEditorShipModified.Fire(EditorLogic.fetch.ship);
+            }
         }
         private BaseEvent SwitchResourcesEvent { get { return Events["DoSwitchResourcesEvent"]; } }
 

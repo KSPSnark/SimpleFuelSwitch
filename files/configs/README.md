@@ -34,10 +34,15 @@ Example:  You want to modify a monoprop tank to be able to choose between monopr
 
 Each ModuleSwitchableResources can specify the following:
 
-* _resourcesId_: *Required.* A unique ID field that distinguishes this ModuleSwitchableResources from all the others on this part.
+* _resourcesId_: *Required.* A unique ID field that distinguishes this ModuleSwitchableResources from all the others on this part. Never displayed to a user.
 * _displayName_: How you want it to show up in the UI (e.g. "LFO"). Optional. If you don't specify, will be auto-generated from the resource names.
 * _selectorFieldName_: How you want the button in the UI to be labeled, e.g. "Fuel Type". Optional; if unspecified, defaults to "Resource".
 * _isDefault_: Whether you want _this_ set of resources to be the one that's initially picked by default for newly placed parts.
 * Resources.
+
+The "resourcesId" field can have any value you want (ideally would be something human-readable, to facilitate debugging).  It needs to meet two requirements:
+
+* Unique within the part: don't add two ModuleSwitchableResources that have the same resourceId as each other.
+* Permanently invariant: once you've used it to design and launch ships, you can never change it after that, because doing so would break any existing ships that used the old ID.
 
 The resources for the ModuleSwitchableResources are specified in a set of RESOURCE sections, same as resources for a regular part.
