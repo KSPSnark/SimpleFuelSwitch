@@ -1,3 +1,6 @@
+Version 1.0.2 (2018-01-13)
+* Fix some bugs involving NREs getting spammed in certain part-copying situations.
+
 Version 1.0.1 (2018-01-11)
 * Fix a bug that caused hang on startup if a part is configured with resource amount = 0. (Thanks to TheKurgan for reporting.)
 * Fix a bug that caused engineer's report in editor not to be updated properly when switching resources. (Thanks to 4x4cheesecake for reporting, and to DMagic for explaining how to fix.)

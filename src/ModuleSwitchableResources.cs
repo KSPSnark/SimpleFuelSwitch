@@ -68,31 +68,30 @@ namespace SimpleFuelSwitch
         /// <param name="node"></param>
         private void OnInitialGameLoading(ConfigNode node)
         {
-            // Load the resources from config and add them to the global map. This is how
-            // the ModuleSimpleFuelSwitch will control behavior when the player is working
-            // with a ship in the editor.
+            // Load the resources from config.
             resources = SwitchableResource.Load(node);
-            SwitchableResourceSet.Add(part.name, resourcesId, displayName, selectorFieldName, isDefault, resources);
+            longTitle = SwitchableResource.LongTitleOf(resources);
+
+            // If they haven't specified a resources title in the config,
+            // use the auto-generated long one.
+            if (string.IsNullOrEmpty(displayName))
+            {
+                displayName = longTitle;
+            }
+
+            // Add the resources to the global map. This is how the ModuleSimpleFuelSwitch will
+            // control behavior when the player is working with a ship in the editor.
+            SwitchableResourceSet.Add(
+                part.name,
+                resourcesId,
+                displayName,
+                selectorFieldName,
+                isDefault,
+                resources);
 
             // Everything else in this class is concerned simply with setting up stuff
             // to display appropriate info in the part info window from the parts pane
             // of the vehicle editor.
-
-            // Build a long title from the resource names.
-            StringBuilder builder = new StringBuilder(resources[0].definition.displayName);
-            for (int i = 1; i < resources.Length; ++i)
-            {
-                builder.Append(" + ");
-                builder.Append(resources[i].definition.displayName);
-            }
-            longTitle = builder.ToString();
-
-            // If they haven't specified a resources title in the config,
-            // use the auto-generated long one.
-            if (displayName == null)
-            {
-                displayName = longTitle;
-            }
 
             info = FormatInfo(resources);
             primaryField = LocalizeUtil.Format(

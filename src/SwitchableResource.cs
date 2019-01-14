@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Text;
 
 namespace SimpleFuelSwitch
 {
@@ -65,6 +66,22 @@ namespace SimpleFuelSwitch
             node.AddValue(AMOUNT_TAG, amount);
             node.AddValue(MAX_AMOUNT_TAG, maxAmount);
             return node;
+        }
+
+        /// <summary>
+        /// Given an array of SwitchableResource, get a long title to describe them.
+        /// </summary>
+        /// <param name="resources"></param>
+        /// <returns></returns>
+        public static string LongTitleOf(SwitchableResource[] resources)
+        {
+            StringBuilder builder = new StringBuilder(resources[0].definition.displayName);
+            for (int i = 1; i < resources.Length; ++i)
+            {
+                builder.Append(" + ");
+                builder.Append(resources[i].definition.displayName);
+            }
+            return builder.ToString();
         }
 
         /// <summary>

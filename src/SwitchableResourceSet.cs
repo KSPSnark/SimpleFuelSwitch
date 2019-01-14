@@ -9,13 +9,10 @@ namespace SimpleFuelSwitch
     class SwitchableResourceSet
     {
         // The primary lookup that stores resources by unique ID.
-        private readonly Dictionary<string, SwitchableResource[]> resourcesById = new Dictionary<string, SwitchableResource[]>();
+        private readonly Dictionary<string, Selection> resourcesById = new Dictionary<string, Selection>();
 
         // Stores resource IDs in the order they're added to the set.
         private readonly List<string> orderedResourceIds = new List<string>();
-
-        // Maps from resource IDs to user-friendly display names for them.
-        private readonly Dictionary<string, string> displayNamesById = new Dictionary<string, string>();
 
         // The resourcesId of the default option, if known.
         private string defaultResourcesId = null;
@@ -58,6 +55,7 @@ namespace SimpleFuelSwitch
                 set = new SwitchableResourceSet(selectorFieldName);
                 resourcesByPartName.Add(partName, set);
             }
+
             set.Add(resourcesId, displayName, resources);
             if (isDefault && (set.defaultResourcesId == null)) set.defaultResourcesId = resourcesId;
         }
@@ -80,8 +78,7 @@ namespace SimpleFuelSwitch
             {
                 throw new ArgumentException("Duplicate resourcesId " + resourcesId);
             }
-            resourcesById[resourcesId] = resources;
-            displayNamesById[resourcesId] = displayName;
+            resourcesById[resourcesId] = new Selection(resourcesId, displayName, resources);
             orderedResourceIds.Add(resourcesId);
         }
 
@@ -90,11 +87,11 @@ namespace SimpleFuelSwitch
         /// </summary>
         /// <param name="resourcesId"></param>
         /// <returns></returns>
-        public SwitchableResource[] this[string resourcesId]
+        public Selection this[string resourcesId]
         {
             get
             {
-                SwitchableResource[] results;
+                Selection results;
                 if (!resourcesById.TryGetValue(resourcesId, out results))
                 {
                     Logging.Warn("No resources found for " + resourcesId + ", returning null");
@@ -102,18 +99,6 @@ namespace SimpleFuelSwitch
                 }
                 return results;
             }
-        }
-
-        /// <summary>
-        /// Given a resources ID, get the user-friendly display name for it.
-        /// </summary>
-        /// <param name="resourcesId"></param>
-        /// <returns></returns>
-        public string DisplayNameOf(string resourcesId)
-        {
-            string result;
-            if (!displayNamesById.TryGetValue(resourcesId, out result)) return null;
-            return result;
         }
 
         /// <summary>
@@ -155,6 +140,38 @@ namespace SimpleFuelSwitch
                 {
                     return defaultResourcesId;
                 }
+            }
+        }
+
+        /// <summary>
+        /// Represents one of the selectable options for a SwitchableResourceSet.
+        /// Consists of an array of SwitchableResource, plus some associated properties.
+        /// </summary>
+        public class Selection
+        {
+            /// <summary>
+            /// The resources ID for this selection.
+            /// </summary>
+            public readonly string resourcesId;
+
+            /// <summary>
+            /// The display name used for this selection, e.g. "LFO"
+            /// </summary>
+            public readonly string displayName;
+
+            /// <summary>
+            /// The resources associated with this selection.
+            /// </summary>
+            public readonly SwitchableResource[] resources;
+
+            internal Selection(
+                string resourcesId,
+                string displayName,
+                SwitchableResource[] resources)
+            {
+                this.resourcesId = resourcesId;
+                this.displayName = displayName;
+                this.resources = resources;
             }
         }
     }
