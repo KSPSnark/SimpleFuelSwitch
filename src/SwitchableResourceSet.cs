@@ -8,6 +8,8 @@ namespace SimpleFuelSwitch
     /// </summary>
     class SwitchableResourceSet
     {
+        private const string WILDCARD_VARIANT = "*";
+
         // The primary lookup that stores resources by unique ID.
         private readonly Dictionary<string, Selection> resourcesById = new Dictionary<string, Selection>();
 
@@ -39,6 +41,7 @@ namespace SimpleFuelSwitch
         /// <param name="resourcesId"></param>
         /// <param name="displayName"></param>
         /// <param name="selectorFieldName"></param>
+        /// <param name="linkedVariants"></param>
         /// <param name="isDefault"></param>
         /// <param name="resources"></param>
         public static void Add(
@@ -46,6 +49,7 @@ namespace SimpleFuelSwitch
             string resourcesId,
             string displayName,
             string selectorFieldName,
+            HashSet<string> linkedVariants,
             bool isDefault,
             SwitchableResource[] resources)
         {
@@ -56,7 +60,7 @@ namespace SimpleFuelSwitch
                 resourcesByPartName.Add(partName, set);
             }
 
-            set.Add(resourcesId, displayName, resources);
+            set.Add(resourcesId, displayName, linkedVariants, resources);
             if (isDefault && (set.defaultResourcesId == null)) set.defaultResourcesId = resourcesId;
         }
 
@@ -72,13 +76,13 @@ namespace SimpleFuelSwitch
             return result;
         }
 
-        private void Add(string resourcesId, string displayName, SwitchableResource[] resources)
+        private void Add(string resourcesId, string displayName, HashSet<string> linkedVariants, SwitchableResource[] resources)
         {
             if (resourcesById.ContainsKey(resourcesId))
             {
                 throw new ArgumentException("Duplicate resourcesId " + resourcesId);
             }
-            resourcesById[resourcesId] = new Selection(resourcesId, displayName, resources);
+            resourcesById[resourcesId] = new Selection(resourcesId, displayName, linkedVariants, resources);
             orderedResourceIds.Add(resourcesId);
         }
 
@@ -144,6 +148,40 @@ namespace SimpleFuelSwitch
         }
 
         /// <summary>
+        /// Tries to find a selection whose linked variant matches the one specified.
+        /// Returns null if not found.
+        /// </summary>
+        /// <param name="variantName"></param>
+        /// <returns></returns>
+        public Selection TryFindLinkedVariant(string variantName)
+        {
+            Selection wildcard = null;
+            for (int i = 0; i < orderedResourceIds.Count; ++i)
+            {
+                Selection selection = resourcesById[orderedResourceIds[i]];
+                if (selection.linkedVariants.Contains(variantName)) return selection;
+                if (selection.linkedVariants.Contains(WILDCARD_VARIANT) && (wildcard == null)) wildcard = selection;
+            }
+            return wildcard; // return the wildcard option (if found), or null if not
+        }
+
+        /// <summary>
+        /// Determines whether any of the available selections has a linked variant.
+        /// </summary>
+        public bool HasAnyLinkedVariants
+        {
+            get
+            {
+                for (int i = 0; i < orderedResourceIds.Count; ++i)
+                {
+                    Selection selection = resourcesById[orderedResourceIds[i]];
+                    if (selection.linkedVariants.Count > 0) return true;
+                }
+                return false;
+            }
+        }
+
+        /// <summary>
         /// Represents one of the selectable options for a SwitchableResourceSet.
         /// Consists of an array of SwitchableResource, plus some associated properties.
         /// </summary>
@@ -160,17 +198,38 @@ namespace SimpleFuelSwitch
             public readonly string displayName;
 
             /// <summary>
+            /// The variant linked with this selection, if any. Null if none.
+            /// </summary>
+            public readonly HashSet<string> linkedVariants;
+
+            /// <summary>
             /// The resources associated with this selection.
             /// </summary>
             public readonly SwitchableResource[] resources;
 
+            /// <summary>
+            /// Try to find the switchable resource with the specified name, or null if not found.
+            /// </summary>
+            /// <param name="resourceName"></param>
+            /// <returns></returns>
+            public SwitchableResource TryFind(string resourceName)
+            {
+                for (int i = 0; i < resources.Length; ++i)
+                {
+                    if (resources[i].definition.name == resourceName) return resources[i];
+                }
+                return null;
+            }
+
             internal Selection(
                 string resourcesId,
                 string displayName,
+                HashSet<string> linkedVariants,
                 SwitchableResource[] resources)
             {
                 this.resourcesId = resourcesId;
                 this.displayName = displayName;
+                this.linkedVariants = linkedVariants;
                 this.resources = resources;
             }
         }

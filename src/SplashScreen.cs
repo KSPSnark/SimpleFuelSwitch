@@ -22,6 +22,8 @@ namespace SimpleFuelSwitch
             "4x4cheesecake",    // bug report for outdated engineer's report
             "DMagic",           // supplying a bug solution
             "Tyko",             // helping improve documentation
+            "JPLRepo",          // advice when tracking down KSP bug
+            "theJesuit",        // suggesting variant-switching feature
         };
 
         internal void Awake()

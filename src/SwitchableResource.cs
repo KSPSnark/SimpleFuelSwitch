@@ -61,8 +61,20 @@ namespace SimpleFuelSwitch
         /// <returns></returns>
         public ConfigNode CreateResourceNode()
         {
+            return CreateResourceNode(definition.name, amount, maxAmount);
+        }
+
+        /// <summary>
+        /// Create a resource node with the specified name and amounts.
+        /// </summary>
+        /// <param name="resourceName"></param>
+        /// <param name="amount"></param>
+        /// <param name="maxAmount"></param>
+        /// <returns></returns>
+        public static ConfigNode CreateResourceNode(string resourceName, double amount, double maxAmount)
+        {
             ConfigNode node = new ConfigNode(RESOURCE_TAG);
-            node.AddValue(NAME_TAG, definition.name);
+            node.AddValue(NAME_TAG, resourceName);
             node.AddValue(AMOUNT_TAG, amount);
             node.AddValue(MAX_AMOUNT_TAG, maxAmount);
             return node;

@@ -46,3 +46,12 @@ The "resourcesId" field can have any value you want (ideally would be something 
 * Permanently invariant: once you've used it to design and launch ships, you can never change it after that, because doing so would break any existing ships that used the old ID.
 
 The resources for the ModuleSwitchableResources are specified in a set of RESOURCE sections, same as resources for a regular part.
+
+
+### Using variants
+
+SimpleFuelSwitch also supports the ability to set up config that ties specific resource selections to _variants_, i.e. picking different variants will select different resource types.
+
+The default configs that are installed with this mod don't happen to use the feature. If you'd like to see how it works, though, please see the "examples" folder on the mod's github repository for some ideas.
+
+Executive summary is that all you have to do is add a "linkedVariant" field to each of your ModuleSwitchableResources, specifying which variant (or variants) correspond to that resource selection.

@@ -1,4 +1,6 @@
-﻿namespace SimpleFuelSwitch
+﻿using System;
+
+namespace SimpleFuelSwitch
 {
     /// <summary>
     /// This PartModule, when provided, allows the part to switch resource contents in the vehicle editor.
@@ -7,6 +9,7 @@
     /// </summary>
     public class ModuleSimpleFuelSwitch : PartModule
     {
+        // Placeholder for when config doesn't provide an (optional) string value.
         private const string DEFAULT_FLAG = "_default";
 
         private SwitchableResourceSet availableResources = null;
@@ -27,12 +30,26 @@
         public void DoSwitchResourcesEvent()
         {
             currentResourcesId = availableResources.NextResourcesId(currentResourcesId);
-            Logging.Log("Switched resources on " + part.name + " " + part.craftID + " to " + availableResources[currentResourcesId].displayName);
+            Logging.Log("Switched resources on " + part.name + " " + part.persistentId + " to " + availableResources[currentResourcesId].displayName);
 
             UpdateSelectedResources(true);
             OnResourcesSwitched();
         }
+
         private BaseEvent SwitchResourcesEvent { get { return Events["DoSwitchResourcesEvent"]; } }
+
+        public override void OnStart(StartState state)
+        {
+            base.OnStart(state);
+            InitializeAvailableResources();
+
+            // If there's a linked variant, we don't want a PAW button for switching
+            // resources, since that'll be done by choosing a variant instead.
+            if (availableResources.HasAnyLinkedVariants)
+            {
+                SwitchResourcesEvent.guiActiveEditor = false;
+            }
+        }
 
         /// <summary>
         /// Here when a part is initially spawned by clicking on its button on the parts
@@ -44,28 +61,135 @@
             UpdateSelectedResources(false);
         }
 
-        public override void OnStart(StartState state)
+        /// <summary>
+        /// Here when any part is attached in the editor. Only called for the actually attached
+        /// part, not for any child parts or symmetry counterparts.
+        /// </summary>
+        /// <param name="part"></param>
+        internal static void OnPartAttached(Part part)
         {
-            base.OnStart(state);
-            InitializeAvailableResources();
+            if (OnTreeAttached(part))
+            {
+                for (int i = 0; i < part.symmetryCounterparts.Count; ++i)
+                {
+                    OnTreeAttached(part.symmetryCounterparts[i]);
+                }
+            }
         }
 
         /// <summary>
-        /// Here when resources have been switched.
+        /// Here when a ship loads in the editor or rolling out to the launchpad.
+        /// </summary>
+        /// <param name="ship"></param>
+        internal static void OnShipLoaded(ShipConstruct ship)
+        {
+            for (int i = 0; i < ship.parts.Count; ++i)
+            {
+                Part part = ship.parts[i];
+                ModuleSimpleFuelSwitch module = TryFind(part);
+                if (module != null) module.OnEditorLoad();
+            }
+        }
+
+        /// <summary>
+        /// Here when the part we're on was loaded on a ship in the editor.
+        /// </summary>
+        private void OnEditorLoad()
+        {
+            // This is needed because in certain circumstances (it's complicated, depends on the
+            // precise sequence of building, saving, loading, launching, etc.), then when the ship
+            // is loaded, it adds all the "missing" default resources even though the saved ship
+            // doesn't actually contain them. So we need to do a scan through all the parts on the
+            // ship, and for any that have ModuleSimpleFuelSwitch on them, check the resources
+            // and remove any that don't belong based on the currently selected resource option.
+
+            // To reproduce the case that needs this:
+            // 1. create a ship in the editor
+            // 2. switch some part so that some of the default resources aren't there anymore
+            //    (e.g. a normally LFO part switches to have, say, LF-only)
+            // 3. save the ship
+            // 4. new
+            // 5. load the ship.  Bingo, it has the extra resources in it.
+            // 6. launch the ship. Bingo, it has the extra resources in it.
+
+            // This function finds and strips out those unwanted "extra" resources.
+
+            InitializeAvailableResources();
+            SwitchableResourceSet.Selection selection = availableResources[currentResourcesId];
+            if (selection == null) return;
+
+            bool isDirty = false;
+            for (int i = 0; i < part.Resources.Count; ++i)
+            {
+                // make sure it's supposed to be here...
+                PartResource resource = part.Resources[i];
+                if (selection.TryFind(resource.resourceName) == null)
+                {
+                    part.Resources.Remove(resource);
+                    isDirty = true;
+                }
+            }
+            if (isDirty)
+            {
+                part.SimulationResources.Clear();
+                part.ResetSimulation();
+            }
+        }
+
+        /// <summary>
+        /// Recursively process every part in a tree, when it's attached. (This gets called
+        /// on symmetry counterparts as well.) Returns true if the tree contains a
+        /// ModuleSimpleFuelSwitch anywhere, false otherwise.
+        /// </summary>
+        /// <param name="part"></param>
+        /// <returns></returns>
+        private static bool OnTreeAttached(Part part)
+        {
+            bool result = SanitizeResources(part);
+            if (part.children == null) return result;
+            for (int i = 0; i < part.children.Count; ++i)
+            {
+                result |= OnTreeAttached(part.children[i]);
+            }
+            return result;
+        }
+
+        /// <summary>
+        /// Here when a variant is applied to the part that this module is on.
+        /// </summary>
+        /// <param name="variant"></param>
+        internal void OnVariantApplied(PartVariant variant)
+        {
+            InitializeAvailableResources();
+
+            // Does this variant have any linked resource selection?
+            SwitchableResourceSet.Selection selection = availableResources.TryFindLinkedVariant(variant.Name);
+            if (selection == null) return; // nope, nobody cares
+
+            // Found one.  Is that one already selected?
+            if (selection.resourcesId == currentResourcesId) return; // Already selected, so nothing to do.
+
+            // Okay, we need to switch to the new selection.
+            currentResourcesId = selection.resourcesId;
+            Logging.Log(
+                "Changed variant on " + part.name + " " + part.persistentId + " to " + variant.Name
+                + ", switching resources to " + availableResources[currentResourcesId].displayName);
+
+            UpdateSelectedResources(true);
+            OnResourcesSwitched();
+        }
+
+        /// <summary>
+        /// Here when resources have been switched (either from clicking the button, or picking
+        /// a linked variant).
         /// </summary>
         private void OnResourcesSwitched()
         {
             // Setting the part resources munges the PAW but doesn't flag it as
             // dirty, so we need to do that ourselves so that it'll redraw correctly
             // with the revised set of resources available.
-            foreach (UIPartActionWindow window in FindObjectsOfType(typeof(UIPartActionWindow)))
-            {
-                if (window.part == part)
-                {
-                    window.displayDirty = true;
-                    break;
-                }
-            }
+            UIPartActionWindow window = UIPartActionController.Instance.GetItem(part);
+            if (window != null) window.displayDirty = true;
 
             // We also need to fire off the "on ship modified" event, so that the engineer
             // report and any other relevant pieces of KSP UI will update as needed.
@@ -101,10 +225,11 @@
             part.SimulationResources.Clear();
             for (int i = 0; i < selection.resources.Length; ++i)
             {
-                PartResource added = part.Resources.Add(selection.resources[i].CreateResourceNode());
-                part.SimulationResources.Add(added);
+                part.Resources.Add(selection.resources[i].CreateResourceNode());
             }
+            part.ResetSimulation();
 
+            // Also adjust any symmetry counterparts.
             if (affectSymCounterparts)
             {
                 for (int i = 0; i < part.symmetryCounterparts.Count; ++i)
@@ -142,6 +267,40 @@
                 if (module != null) return module;
             }
             return null; // not found
+        }
+
+        /// <summary>
+        /// If the part has a ModuleSimpleFuelSwitch, sanitize the resources and return true.
+        /// Otherwise, do nothing and return false.
+        /// </summary>
+        /// <param name="part"></param>
+        /// <returns></returns>
+        private static bool SanitizeResources(Part part)
+        {
+            if (TryFind(part) == null) return false;
+            // KSP 1.6 has a bug in Part.OnCopy that causes PartResourceList to get
+            // corrupted with mismatched dictionary keys. To work around this, we have
+            // to clear out and re-insert all the resources.
+            //
+            // Hopefully a future KSP update will fix the bug and this hack can be removed.
+            ConfigNode[] nodes = new ConfigNode[part.Resources.Count];
+            for (int i = 0; i < nodes.Length; ++i)
+            {
+                PartResource resource = part.Resources[i];
+                nodes[i] = SwitchableResource.CreateResourceNode(
+                    resource.resourceName,
+                    resource.amount,
+                    resource.maxAmount);
+                nodes[i].AddValue("flowState", resource.flowState);
+            }
+            part.Resources.Clear();
+            part.SimulationResources.Clear();
+            for (int i = 0; i < nodes.Length; ++i)
+            {
+                part.Resources.Add(nodes[i]);
+            }
+            part.ResetSimulation();
+            return true;
         }
     }
 }

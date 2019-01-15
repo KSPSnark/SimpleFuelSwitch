@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using System.Collections.Generic;
+using System.Text;
 using UnityEngine;
 
 namespace SimpleFuelSwitch
@@ -17,6 +18,8 @@ namespace SimpleFuelSwitch
     /// </summary>
     class ModuleSwitchableResources : PartModule, IModuleInfo
     {
+        private static readonly HashSet<string> NO_LINKED_VARIANTS = new HashSet<string>();
+
         /// <summary>
         /// This is an ID string, not displayed to the player, which is used by the mod
         /// to identify this instance of the module. It needs to be unique within the
@@ -46,6 +49,17 @@ namespace SimpleFuelSwitch
         /// </summary>
         [KSPField]
         public bool isDefault = false;
+
+        /// <summary>
+        /// Optional. If supplied, will "link" this resource option with the named variant, so that
+        /// switching to this resource will automatically apply that variant, and vice-versa.
+        /// Note that it's possible to link multiple variants to this resource selection by
+        /// including multiple variant names delimited by commas. You can also specify * as the
+        /// value, meaning "wildcard", if you want to link ALL variants except those that
+        /// explicitly specify something else.
+        /// </summary>
+        [KSPField]
+        public string linkedVariant = "";
 
         private SwitchableResource[] resources = null;
         private string info = null;
@@ -86,6 +100,7 @@ namespace SimpleFuelSwitch
                 resourcesId,
                 displayName,
                 selectorFieldName,
+                ParseLinkedVariants(linkedVariant),
                 isDefault,
                 resources);
 
@@ -138,6 +153,25 @@ namespace SimpleFuelSwitch
         public override string GetInfo()
         {
             return info;
+        }
+
+        /// <summary>
+        /// Parse a comma-delimited string into a set of linked variants.
+        /// </summary>
+        /// <param name="text"></param>
+        /// <returns></returns>
+        private static HashSet<string> ParseLinkedVariants(string text)
+        {
+            if (string.IsNullOrEmpty(text)) return NO_LINKED_VARIANTS;
+            string[] tokens = text.Split(',');
+            HashSet<string> results = new HashSet<string>();
+            for (int i = 0; i < tokens.Length; ++i)
+            {
+                string token = tokens[i].Trim();
+                if (string.IsNullOrEmpty(token)) continue;
+                results.Add(token);
+            }
+            return (results.Count > 0) ? results : NO_LINKED_VARIANTS;
         }
 
         private static string FormatInfo(SwitchableResource[] resources)
