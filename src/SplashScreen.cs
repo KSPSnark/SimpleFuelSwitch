@@ -24,6 +24,7 @@ namespace SimpleFuelSwitch
             "Tyko",             // helping improve documentation
             "JPLRepo",          // advice when tracking down KSP bug
             "theJesuit",        // suggesting variant-switching feature
+            "RealKerbal3x",     // feature idea: allow "no resources" as a switchable option
         };
 
         internal void Awake()

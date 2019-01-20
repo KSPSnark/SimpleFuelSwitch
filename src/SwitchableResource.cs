@@ -87,6 +87,7 @@ namespace SimpleFuelSwitch
         /// <returns></returns>
         public static string LongTitleOf(SwitchableResource[] resources)
         {
+            if (resources.Length == 0) return LocalizeUtil.GetString("#SimpleFuelSwitch_noResources");
             StringBuilder builder = new StringBuilder(resources[0].definition.displayName);
             for (int i = 1; i < resources.Length; ++i)
             {

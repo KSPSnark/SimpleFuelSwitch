@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace SimpleFuelSwitch
+﻿namespace SimpleFuelSwitch
 {
     /// <summary>
     /// This PartModule, when provided, allows the part to switch resource contents in the vehicle editor.

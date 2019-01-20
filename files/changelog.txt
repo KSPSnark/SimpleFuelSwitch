@@ -1,3 +1,6 @@
+Version 1.1.1 (2018-01-20)
+* Minor tweak that allows "no resources" as a switchable option. (Thanks to RealKerbal3x fo rsuggesting.)
+
 Version 1.1 (2018-01-15)
 * Add new feature that allows using part variants to control resources. (Thanks to theJesuit for suggesting.)
 

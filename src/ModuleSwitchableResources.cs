@@ -109,11 +109,18 @@ namespace SimpleFuelSwitch
             // of the vehicle editor.
 
             info = FormatInfo(resources);
-            primaryField = LocalizeUtil.Format(
-                "#SimpleFuelSwitch_primaryInfoFormat",
-                selectorFieldName,
-                displayName,
-                FormatPrimaryFieldQuantity(resources));
+            if (resources.Length == 0)
+            {
+                primaryField = longTitle;
+            }
+            else
+            {
+                primaryField = LocalizeUtil.Format(
+                    "#SimpleFuelSwitch_primaryInfoFormat",
+                    selectorFieldName,
+                    displayName,
+                    FormatPrimaryFieldQuantity(resources));
+            }
         }
 
         public Callback<Rect> GetDrawModulePanelCallback()
@@ -192,6 +199,8 @@ namespace SimpleFuelSwitch
             // need to be more succinct. For each resource, we'll either display
             // the mass (if it's a resource with density > 0), or the amount
             // (for zero-density resources).
+
+            if (resources.Length == 0) return LocalizeUtil.GetString("#SimpleFuelSwitch_noResources");
             StringBuilder builder = new StringBuilder();
             for (int i = 0; i < resources.Length; ++i)
             {
