@@ -102,7 +102,8 @@ namespace SimpleFuelSwitch
                 selectorFieldName,
                 ParseLinkedVariants(linkedVariant),
                 isDefault,
-                resources);
+                resources,
+                part.Resources);
 
             // Everything else in this class is concerned simply with setting up stuff
             // to display appropriate info in the part info window from the parts pane

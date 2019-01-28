@@ -10,6 +10,8 @@ namespace SimpleFuelSwitch
     {
         private const string WILDCARD_VARIANT = "*";
 
+        private static readonly HashSet<string> EMPTY_RESOURCES = new HashSet<string>();
+
         // The primary lookup that stores resources by unique ID.
         private readonly Dictionary<string, Selection> resourcesById = new Dictionary<string, Selection>();
 
@@ -22,6 +24,8 @@ namespace SimpleFuelSwitch
         // How the "pick a resource set" field is labeled in the editor UI, e.g. "Fuel Type" or whatever.
         public readonly string selectorFieldName;
 
+        public HashSet<string> baseResourceNames;
+
         /// <summary>
         /// Static map set up at program load time.  Key is part name, value is the set
         /// of switchable resource options available for the part.
@@ -29,9 +33,21 @@ namespace SimpleFuelSwitch
         private static readonly Dictionary<string, SwitchableResourceSet> resourcesByPartName
             = new Dictionary<string, SwitchableResourceSet>();
 
-        private SwitchableResourceSet(string selectorFieldName)
+        private SwitchableResourceSet(string selectorFieldName, PartResourceList partBaseResources)
         {
             this.selectorFieldName = selectorFieldName;
+            if (partBaseResources.Count == 0)
+            {
+                baseResourceNames = EMPTY_RESOURCES;
+            }
+            else
+            {
+                baseResourceNames = new HashSet<string>();
+                for (int i = 0; i < partBaseResources.Count; ++i)
+                {
+                    baseResourceNames.Add(partBaseResources[i].resourceName);
+                }
+            }
         }
 
         /// <summary>
@@ -44,6 +60,7 @@ namespace SimpleFuelSwitch
         /// <param name="linkedVariants"></param>
         /// <param name="isDefault"></param>
         /// <param name="resources"></param>
+        /// <param name="partBaseResources"></param>
         public static void Add(
             string partName,
             string resourcesId,
@@ -51,12 +68,13 @@ namespace SimpleFuelSwitch
             string selectorFieldName,
             HashSet<string> linkedVariants,
             bool isDefault,
-            SwitchableResource[] resources)
+            SwitchableResource[] resources,
+            PartResourceList partBaseResources)
         {
             SwitchableResourceSet set = null;
             if (!resourcesByPartName.TryGetValue(partName, out set))
             {
-                set = new SwitchableResourceSet(selectorFieldName);
+                set = new SwitchableResourceSet(selectorFieldName, partBaseResources);
                 resourcesByPartName.Add(partName, set);
             }
 
@@ -74,6 +92,61 @@ namespace SimpleFuelSwitch
             SwitchableResourceSet result;
             if (!resourcesByPartName.TryGetValue(partName, out result)) return null;
             return result;
+        }
+
+        /// <summary>
+        /// Bring a part's resources into line with the specified resources ID for selection. Returns
+        /// the current selection, or null if there's a problem.
+        /// </summary>
+        /// <param name="part"></param>
+        /// <param name="resourcesId"></param>
+        public static Selection UpdatePartResourceList(Part part, string resourcesId)
+        {
+            // First, find what selectable resources *should* be there
+            SwitchableResourceSet set = null;
+            if (!resourcesByPartName.TryGetValue(part.name, out set)) return null; // no info found for this part
+            Selection selection = set[resourcesId];
+            if (selection == null) return null; // no such selection available for this part
+
+            // Now see if there's anything we should be removing
+            bool isDirty = false;
+            List<string> unwantedResources = null;
+            for (int i = 0; i < part.Resources.Count; ++i)
+            {
+                PartResource resource = part.Resources[i];
+                if (!set.baseResourceNames.Contains(resource.resourceName) && (selection.TryFind(resource.resourceName) == null))
+                {
+                    if (unwantedResources == null) unwantedResources = new List<string>();
+                    unwantedResources.Add(resource.resourceName);
+                }
+            }
+            if (unwantedResources != null)
+            {
+                isDirty = true;
+                for (int i = 0; i < unwantedResources.Count; ++i)
+                {
+                    part.Resources.Remove(unwantedResources[i]);
+                }
+            }
+
+            // Then see whether there are any missing resources we should be adding
+            for (int i = 0; i < selection.resources.Length; ++i)
+            {
+                SwitchableResource resource = selection.resources[i];
+                if (!part.Resources.Contains(resource.definition.name))
+                {
+                    isDirty = true;
+                    part.Resources.Add(resource.CreateResourceNode());
+                }
+            }
+
+            if (isDirty)
+            {
+                // we made changes, so we need to reset some stuff
+                part.SimulationResources.Clear();
+                part.ResetSimulation();
+            }
+            return selection;
         }
 
         private void Add(string resourcesId, string displayName, HashSet<string> linkedVariants, SwitchableResource[] resources)

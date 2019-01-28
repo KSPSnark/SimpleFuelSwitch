@@ -1,4 +1,6 @@
-﻿namespace SimpleFuelSwitch
+﻿using System.Collections.Generic;
+
+namespace SimpleFuelSwitch
 {
     /// <summary>
     /// This PartModule, when provided, allows the part to switch resource contents in the vehicle editor.
@@ -85,14 +87,29 @@
             {
                 Part part = ship.parts[i];
                 ModuleSimpleFuelSwitch module = TryFind(part);
-                if (module != null) module.OnEditorLoad();
+                if (module != null) module.OnShipLoaded();
             }
         }
 
         /// <summary>
-        /// Here when the part we're on was loaded on a ship in the editor.
+        /// Here when a vessel is loaded in flight.
         /// </summary>
-        private void OnEditorLoad()
+        /// <param name="vessel"></param>
+        internal static void OnVesselLoaded(Vessel vessel)
+        {
+            for (int i = 0; i < vessel.parts.Count; ++i)
+            {
+                Part part = vessel.parts[i];
+                ModuleSimpleFuelSwitch module = TryFind(part);
+                if (module != null) module.OnShipLoaded();
+            }
+        }
+
+        /// <summary>
+        /// Here when the part we're on was loaded on a ship in the editor, on initial vessel
+        /// rollout, or when switching to a vessel.
+        /// </summary>
+        private void OnShipLoaded()
         {
             // This is needed because in certain circumstances (it's complicated, depends on the
             // precise sequence of building, saving, loading, launching, etc.), then when the ship
@@ -112,26 +129,7 @@
 
             // This function finds and strips out those unwanted "extra" resources.
 
-            InitializeAvailableResources();
-            SwitchableResourceSet.Selection selection = availableResources[currentResourcesId];
-            if (selection == null) return;
-
-            bool isDirty = false;
-            for (int i = 0; i < part.Resources.Count; ++i)
-            {
-                // make sure it's supposed to be here...
-                PartResource resource = part.Resources[i];
-                if (selection.TryFind(resource.resourceName) == null)
-                {
-                    part.Resources.Remove(resource);
-                    isDirty = true;
-                }
-            }
-            if (isDirty)
-            {
-                part.SimulationResources.Clear();
-                part.ResetSimulation();
-            }
+            SwitchableResourceSet.UpdatePartResourceList(part, currentResourcesId);
         }
 
         /// <summary>
@@ -210,22 +208,15 @@
             {
                 currentResourcesId = availableResources.DefaultResourcesId;
             }
-            SwitchableResourceSet.Selection selection = availableResources[currentResourcesId];
+            SwitchableResourceSet.Selection selection = SwitchableResourceSet.UpdatePartResourceList(part, currentResourcesId);
+
+            if (selection == null) return;
 
             // Set the name displayed in the PAW.
             SwitchResourcesEvent.guiName = string.Format(
                 "{0}: {1}",
                 availableResources.selectorFieldName,
                 selection.displayName);
-
-            // Actually set up the resources on the part.
-            part.Resources.Clear();
-            part.SimulationResources.Clear();
-            for (int i = 0; i < selection.resources.Length; ++i)
-            {
-                part.Resources.Add(selection.resources[i].CreateResourceNode());
-            }
-            part.ResetSimulation();
 
             // Also adjust any symmetry counterparts.
             if (affectSymCounterparts)

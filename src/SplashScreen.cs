@@ -25,6 +25,8 @@ namespace SimpleFuelSwitch
             "JPLRepo",          // advice when tracking down KSP bug
             "theJesuit",        // suggesting variant-switching feature
             "RealKerbal3x",     // feature idea: allow "no resources" as a switchable option
+            "Behemot",          // pointing out an issue with hidden fuel tanks in default config
+            "DStaal",           // helpful suggestions
         };
 
         internal void Awake()

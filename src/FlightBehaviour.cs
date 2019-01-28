@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System;
+using UnityEngine;
 
 namespace SimpleFuelSwitch
 {
@@ -9,12 +10,14 @@ namespace SimpleFuelSwitch
         {
             Logging.Log("Registering events");
             GameEvents.OnVesselRollout.Add(OnVesselRollout);
+            GameEvents.onVesselLoaded.Add(OnVesselLoaded);
         }
 
         public void OnDestroy()
         {
             Logging.Log("Unregistering events");
             GameEvents.OnVesselRollout.Remove(OnVesselRollout);
+            GameEvents.onVesselLoaded.Remove(OnVesselLoaded);
         }
 
         /// <summary>
@@ -24,6 +27,15 @@ namespace SimpleFuelSwitch
         private void OnVesselRollout(ShipConstruct ship)
         {
             ModuleSimpleFuelSwitch.OnShipLoaded(ship);
+        }
+
+        /// <summary>
+        /// Here when a vessel in flight is loaded.
+        /// </summary>
+        /// <param name="data"></param>
+        private void OnVesselLoaded(Vessel vessel)
+        {
+            ModuleSimpleFuelSwitch.OnVesselLoaded(vessel);
         }
     }
 }
