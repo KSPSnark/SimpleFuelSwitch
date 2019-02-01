@@ -100,7 +100,8 @@ namespace SimpleFuelSwitch
         /// </summary>
         /// <param name="part"></param>
         /// <param name="resourcesId"></param>
-        public static Selection UpdatePartResourceList(Part part, string resourcesId)
+        /// <param name="resetAmounts"></param>
+        public static Selection UpdatePartResourceList(Part part, string resourcesId, bool resetAmounts)
         {
             // First, find what selectable resources *should* be there
             SwitchableResourceSet set = null;
@@ -114,11 +115,22 @@ namespace SimpleFuelSwitch
             for (int i = 0; i < part.Resources.Count; ++i)
             {
                 PartResource resource = part.Resources[i];
-                if (!set.baseResourceNames.Contains(resource.resourceName) && (selection.TryFind(resource.resourceName) == null))
+                if (set.baseResourceNames.Contains(resource.resourceName)) continue; // included on the base part, so keep it
+                SwitchableResource switchableResource = selection.TryFind(resource.resourceName);
+                if (switchableResource != null)
                 {
-                    if (unwantedResources == null) unwantedResources = new List<string>();
-                    unwantedResources.Add(resource.resourceName);
+                    if (resetAmounts)
+                    {
+                        // The resource is one that we want to be on the current part. However, the amount
+                        // or maxAmount might be off.
+                        resource.maxAmount = switchableResource.maxAmount;
+                        resource.amount = switchableResource.amount;
+                    }
+                    continue;
                 }
+                // It's unwanted. Add it to the list.
+                if (unwantedResources == null) unwantedResources = new List<string>();
+                unwantedResources.Add(resource.resourceName);
             }
             if (unwantedResources != null)
             {

@@ -129,7 +129,7 @@ namespace SimpleFuelSwitch
 
             // This function finds and strips out those unwanted "extra" resources.
 
-            SwitchableResourceSet.UpdatePartResourceList(part, currentResourcesId);
+            SwitchableResourceSet.UpdatePartResourceList(part, currentResourcesId, false);
         }
 
         /// <summary>
@@ -208,7 +208,7 @@ namespace SimpleFuelSwitch
             {
                 currentResourcesId = availableResources.DefaultResourcesId;
             }
-            SwitchableResourceSet.Selection selection = SwitchableResourceSet.UpdatePartResourceList(part, currentResourcesId);
+            SwitchableResourceSet.Selection selection = SwitchableResourceSet.UpdatePartResourceList(part, currentResourcesId, true);
 
             if (selection == null) return;
 

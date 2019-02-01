@@ -1,3 +1,8 @@
+Version 1.2 (2019-02-01)
+* Patch for TAC Life Support that reduces part count by using variants for switching resources.
+* The textures of "removed" LFO tanks are now available as variants on their LF equivalents. (Thanks to theonegalen for suggesting.)
+* Bugfix for issue with LF amount when switching fuel tanks. (Thanks to ExtremeSquared for reporting.)
+
 Version 1.1.2 (2019-01-28)
 * Bugfix: don't remove additional (i.e. unswitched) resources from parts
 * Bugfix: wasn't properly handling resources on ship load in certain edge cases

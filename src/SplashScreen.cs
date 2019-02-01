@@ -27,6 +27,8 @@ namespace SimpleFuelSwitch
             "RealKerbal3x",     // feature idea: allow "no resources" as a switchable option
             "Behemot",          // pointing out an issue with hidden fuel tanks in default config
             "DStaal",           // helpful suggestions
+            "theonegalen",      // nice suggestion about LFO tank variants
+            "ExtremeSquared",   // bug report for v1.1.2
         };
 
         internal void Awake()
