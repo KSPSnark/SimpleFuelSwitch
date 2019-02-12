@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Text;
 using UnityEngine;
 
@@ -23,7 +24,10 @@ namespace SimpleFuelSwitch
         /// <summary>
         /// This is an ID string, not displayed to the player, which is used by the mod
         /// to identify this instance of the module. It needs to be unique within the
-        /// part.
+        /// part. Any name is OK except the reserved word "default". It's recommended to
+        /// use the same resourcesId across all parts for the same list of resource types,
+        /// since this mod includes per-resourcesId config for how to format and display
+        /// them.
         /// </summary>
         [KSPField]
         public string resourcesId = null;
@@ -76,12 +80,23 @@ namespace SimpleFuelSwitch
             if (HighLogic.LoadedScene == GameScenes.LOADING) OnInitialGameLoading(node);
         }
 
+        public override void OnStart(StartState state)
+        {
+            base.OnStart(state);
+            if (resourcesId == ResourceInfoFormatter.DEFAULT_ID)
+            {
+                throw new Exception("Invalid resourcesId on " + part.name + " uses reserved word '" + ResourceInfoFormatter.DEFAULT_ID + "'");
+            }
+        }
+
         /// <summary>
         /// Here when the game is first loading up.
         /// </summary>
         /// <param name="node"></param>
         private void OnInitialGameLoading(ConfigNode node)
         {
+            Loader.Initialize();
+
             // Load the resources from config.
             resources = SwitchableResource.Load(node);
             longTitle = SwitchableResource.LongTitleOf(resources);
@@ -109,7 +124,7 @@ namespace SimpleFuelSwitch
             // to display appropriate info in the part info window from the parts pane
             // of the vehicle editor.
 
-            info = FormatInfo(resources);
+            info = FormatInfo(resourcesId, resources);
             if (resources.Length == 0)
             {
                 primaryField = longTitle;
@@ -120,7 +135,7 @@ namespace SimpleFuelSwitch
                     "#SimpleFuelSwitch_primaryInfoFormat",
                     selectorFieldName,
                     displayName,
-                    FormatPrimaryFieldQuantity(resources));
+                    ResourcePrimaryInfoFormatter.Format(resourcesId, resources));
             }
         }
 
@@ -182,75 +197,27 @@ namespace SimpleFuelSwitch
             return (results.Count > 0) ? results : NO_LINKED_VARIANTS;
         }
 
-        private static string FormatInfo(SwitchableResource[] resources)
+        /// <summary>
+        /// Formats the information to display in the info pane on the right side of
+        /// the part's pop-up window on the editor.
+        /// </summary>
+        /// <param name="resourcesId"></param>
+        /// <param name="resources"></param>
+        /// <returns></returns>
+        private static string FormatInfo(string resourcesId, SwitchableResource[] resources)
         {
-            // For default parts that aren't using this mod, each resource will
-            // get one pane, where the title is the resource name and the
-            // info consists of three lines: Amount, Mass, Cost.
-            //
-            // In our case, we're adding one pane for a *set* of resources, so
-            // we need to present the info a bit differently.
-            //
-            // The title is fairly straightforward: the specified resources
-            // title for the module (if provided), or a list of resource names
-            // (if not).
-            //
-            // However, we can't really show amount/mass/cost, since there are
-            // multiple panes that may have multiple resources each, so we
-            // need to be more succinct. For each resource, we'll either display
-            // the mass (if it's a resource with density > 0), or the amount
-            // (for zero-density resources).
-
             if (resources.Length == 0) return LocalizeUtil.GetString("#SimpleFuelSwitch_noResources");
+
             StringBuilder builder = new StringBuilder();
             for (int i = 0; i < resources.Length; ++i)
             {
-                SwitchableResource resource = resources[i];
-                string amountString = (resource.definition.density > 0)
-                    ? FormatMassInTons(resource.maxAmount * resource.definition.density)
-                    : FormatAmount(resource.maxAmount);
                 if (i > 0) builder.Append("\n");
                 builder.Append(LocalizeUtil.Format(
                     "#SimpleFuelSwitch_detailedInfoFormat",
-                    resource.definition.displayName,
-                    amountString));
+                    resources[i].definition.displayName,
+                    ResourceInfoFormatter.Format(resourcesId, resources[i])));
             }
             return builder.ToString();
-        }
-
-        /// <summary>
-        /// Given a set of SwitchableResource, return a string representing the "amount"
-        /// of resource, summarized down to a single number (possibly with units).
-        /// </summary>
-        /// <param name="resources"></param>
-        /// <returns></returns>
-        private static string FormatPrimaryFieldQuantity(SwitchableResource[] resources)
-        {
-            // Like FormatInfo, but sums all resources down to one line.
-            double totalAmount = 0;
-            double totalMass = 0;
-            for (int i = 0; i < resources.Length; ++i)
-            {
-                totalAmount += resources[i].amount;
-                totalMass += resources[i].amount * resources[i].definition.density;
-            }
-            return (totalMass > 0) ? FormatMassInTons(totalMass) : FormatAmount(totalAmount);
-        }
-
-        /// <summary>
-        /// Given a mass in tons, produce a formatted string (with units) suitable
-        /// for UI display.
-        /// </summary>
-        /// <param name="tons"></param>
-        /// <returns></returns>
-        private static string FormatMassInTons(double tons)
-        {
-            return LocalizeUtil.Format("#SimpleFuelSwitch_massTonsFormat", tons);
-        }
-
-        private static string FormatAmount(double amount)
-        {
-            return string.Format("{0:0.0}", amount);
         }
     }
 }

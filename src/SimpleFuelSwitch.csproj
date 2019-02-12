@@ -41,11 +41,14 @@
   <ItemGroup>
     <Compile Include="EditorBehaviour.cs" />
     <Compile Include="FlightBehaviour.cs" />
+    <Compile Include="Loader.cs" />
     <Compile Include="LocalizeUtil.cs" />
     <Compile Include="Logging.cs" />
     <Compile Include="ModuleSimpleFuelSwitch.cs" />
     <Compile Include="ModuleSwitchableResources.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="ResourceInfoFormatter.cs" />
+    <Compile Include="ResourcePrimaryInfoFormatter.cs" />
     <Compile Include="SplashScreen.cs" />
     <Compile Include="SwitchableResource.cs" />
     <Compile Include="SwitchableResourceSet.cs" />
