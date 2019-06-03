@@ -29,6 +29,8 @@ namespace SimpleFuelSwitch
             "DStaal",           // helpful suggestions
             "theonegalen",      // nice suggestion about LFO tank variants
             "ExtremeSquared",   // bug report for v1.1.2
+            "Tonka Crash",      // bug report for v1.3
+            "JPLRepo"           // helpful bug-fixing advice
         };
 
         internal void Awake()

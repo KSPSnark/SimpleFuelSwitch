@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-
-namespace SimpleFuelSwitch
+﻿namespace SimpleFuelSwitch
 {
     /// <summary>
     /// This PartModule, when provided, allows the part to switch resource contents in the vehicle editor.
@@ -128,6 +126,11 @@ namespace SimpleFuelSwitch
             // 6. launch the ship. Bingo, it has the extra resources in it.
 
             // This function finds and strips out those unwanted "extra" resources.
+            InitializeAvailableResources();
+            if (currentResourcesId == DEFAULT_FLAG)
+            {
+                currentResourcesId = availableResources.DefaultResourcesId;
+            }
 
             SwitchableResourceSet.UpdatePartResourceList(part, currentResourcesId, false);
         }
@@ -185,7 +188,11 @@ namespace SimpleFuelSwitch
             // dirty, so we need to do that ourselves so that it'll redraw correctly
             // with the revised set of resources available.
             UIPartActionWindow window = UIPartActionController.Instance.GetItem(part);
-            if (window != null) window.displayDirty = true;
+            if (window != null)
+            {
+                window.CreatePartList(true);
+                window.displayDirty = true;
+            }
 
             // We also need to fire off the "on ship modified" event, so that the engineer
             // report and any other relevant pieces of KSP UI will update as needed.
@@ -256,6 +263,17 @@ namespace SimpleFuelSwitch
                 if (module != null) return module;
             }
             return null; // not found
+        }
+
+        /// <summary>
+        /// Here when the part's PAW is popped up.
+        /// </summary>
+        /// <param name="window"></param>
+        internal void OnPartActionUIShown(UIPartActionWindow window)
+        {
+            // Update the PAW so that it's correctly configured.  That's because if we just
+            // loaded the ship in the editor, it won't have been set up yet.
+            OnResourcesSwitched();
         }
 
         /// <summary>

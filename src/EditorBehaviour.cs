@@ -1,4 +1,5 @@
-﻿using KSP.UI.Screens;
+﻿using System;
+using KSP.UI.Screens;
 using UnityEngine;
 
 namespace SimpleFuelSwitch
@@ -16,6 +17,7 @@ namespace SimpleFuelSwitch
             GameEvents.onEditorPartEvent.Add(OnEditorPartEvent);
             GameEvents.onEditorVariantApplied.Add(OnEditorVariantApplied);
             GameEvents.onEditorLoad.Add(OnEditorLoad);
+            GameEvents.onPartActionUIShown.Add(OnPartActionUIShown);
         }
 
         public void OnDestroy()
@@ -24,6 +26,7 @@ namespace SimpleFuelSwitch
             GameEvents.onEditorPartEvent.Remove(OnEditorPartEvent);
             GameEvents.onEditorVariantApplied.Remove(OnEditorVariantApplied);
             GameEvents.onEditorLoad.Remove(OnEditorLoad);
+            GameEvents.onPartActionUIShown.Remove(OnPartActionUIShown);
         }
 
         /// <summary>
@@ -78,6 +81,17 @@ namespace SimpleFuelSwitch
         private void OnEditorLoad(ShipConstruct ship, CraftBrowserDialog.LoadType loadType)
         {
             ModuleSimpleFuelSwitch.OnShipLoaded(ship);
+        }
+
+        /// <summary>
+        /// Here when any part's PAW is popped up.
+        /// </summary>
+        /// <param name="window"></param>
+        /// <param name="part"></param>
+        private void OnPartActionUIShown(UIPartActionWindow window, Part part)
+        {
+            ModuleSimpleFuelSwitch module = ModuleSimpleFuelSwitch.TryFind(part);
+            if (module != null) module.OnPartActionUIShown(window);
         }
     }
 }
