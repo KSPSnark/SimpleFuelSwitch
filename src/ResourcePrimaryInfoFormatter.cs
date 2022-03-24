@@ -114,12 +114,12 @@ namespace SimpleFuelSwitch
             {
                 for (int i = 0; i < resources.Length; ++i)
                 {
-                    units += resources[i].amount;
+                    units += resources[i].maxAmount;
                 }
             }
             else
             {
-                units = resources[index].amount;
+                units = resources[index].maxAmount;
             }
             return string.Format("{0:0.#}", units);
         }
@@ -137,12 +137,12 @@ namespace SimpleFuelSwitch
             {
                 for (int i = 0; i < resources.Length; ++i)
                 {
-                    mass += resources[i].amount * resources[i].definition.density;
+                    mass += resources[i].maxAmount * resources[i].definition.density;
                 }
             }
             else
             {
-                mass = resources[index].amount * resources[index].definition.density;
+                mass = resources[index].maxAmount * resources[index].definition.density;
             }
             return LocalizeUtil.Format("#SimpleFuelSwitch_massTonsFormat", mass);
         }

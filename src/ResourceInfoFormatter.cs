@@ -101,7 +101,7 @@ namespace SimpleFuelSwitch
         /// <returns></returns>
         private static string UnitsOf(SwitchableResource resource)
         {
-            return string.Format("{0:0.#}", resource.amount);
+            return string.Format("{0:0.#}", resource.maxAmount);
         }
 
         /// <summary>
@@ -111,7 +111,7 @@ namespace SimpleFuelSwitch
         /// <returns></returns>
         private static string MassOf(SwitchableResource resource)
         {
-            return LocalizeUtil.Format("#SimpleFuelSwitch_massTonsFormat", resource.amount * resource.definition.density);
+            return LocalizeUtil.Format("#SimpleFuelSwitch_massTonsFormat", resource.maxAmount * resource.definition.density);
         }
 
         /// <summary>

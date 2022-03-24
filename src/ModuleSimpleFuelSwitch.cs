@@ -10,6 +10,12 @@
         // Placeholder for when config doesn't provide an (optional) string value.
         private const string DEFAULT_FLAG = "_default";
 
+        // The set of available resources on the part.  Will be null if the part has no switchable
+        // resources, in which case this whole part module basically does nothing. We normally don't
+        // expect that to be a common occurrence, because there's no reason to add a
+        // ModuleSimpleFuelSwitch to a part unless the part has resources to switch. However, we still
+        // need to allow for the possibility, since there's nothing stopping someone from putting in
+        // config that adds a ModuleSimpleFuelSwitch without adding the needed resource hooks.
         private SwitchableResourceSet availableResources = null;
 
         /// <summary>
@@ -27,6 +33,7 @@
         // so a user should never see it, which is why I haven't bothered to localize it.
         public void DoSwitchResourcesEvent()
         {
+            if (availableResources == null) return;
             currentResourcesId = availableResources.NextResourcesId(currentResourcesId);
             Logging.Log("Switched resources on " + part.name + " " + part.persistentId + " to " + availableResources[currentResourcesId].displayName);
 
@@ -39,7 +46,11 @@
         public override void OnStart(StartState state)
         {
             base.OnStart(state);
-            InitializeAvailableResources();
+            if (!InitializeAvailableResources())
+            {
+                LogInactiveWarning();
+                return;
+            }
 
             // If there's a linked variant, we don't want a PAW button for switching
             // resources, since that'll be done by choosing a variant instead.
@@ -126,7 +137,11 @@
             // 6. launch the ship. Bingo, it has the extra resources in it.
 
             // This function finds and strips out those unwanted "extra" resources.
-            InitializeAvailableResources();
+            if (!InitializeAvailableResources())
+            {
+                LogInactiveWarning();
+                return;
+            }
             if (currentResourcesId == DEFAULT_FLAG)
             {
                 currentResourcesId = availableResources.DefaultResourcesId;
@@ -159,7 +174,7 @@
         /// <param name="variant"></param>
         internal void OnVariantApplied(PartVariant variant)
         {
-            InitializeAvailableResources();
+            if (!InitializeAvailableResources()) return;
 
             // Does this variant have any linked resource selection?
             SwitchableResourceSet.Selection selection = availableResources.TryFindLinkedVariant(variant.Name);
@@ -209,7 +224,11 @@
         /// <param name="affectSymCounterparts"></param>
         private void UpdateSelectedResources(bool affectSymCounterparts)
         {
-            InitializeAvailableResources();
+            if (!InitializeAvailableResources())
+            {
+                LogInactiveWarning();
+                return;
+            }
 
             if (currentResourcesId == DEFAULT_FLAG)
             {
@@ -241,12 +260,35 @@
             }
         }
 
-        internal void InitializeAvailableResources()
+        /// <summary>
+        /// Set up the available resources on the part. Returns true if they're set up.
+        /// Returns false if the part has no available resources for switching.
+        /// </summary>
+        /// <returns></returns>
+        internal bool InitializeAvailableResources()
         {
             if (availableResources == null)
             {
                 availableResources = SwitchableResourceSet.ForPart(part.name);
+                if (availableResources == null)
+                {
+                    // Part has no resources, don't enable the event.
+                    SwitchResourcesEvent.guiActiveEditor = false;
+                }
             }
+
+            return availableResources != null;
+        }
+
+        /// <summary>
+        /// Log a warning message when the module is inactive due to no switchable resources being configured.
+        /// This generally indicates a configuration problem somewhere, since normally one wouldn't add
+        /// a ModuleSimpleFuelSwitch to a part unless there were also switchable resources for the part.
+        /// </summary>
+        private void LogInactiveWarning()
+        {
+            Logging.Warn("Fuel switching disabled for " + part.name + " " + part.persistentId
+                + " (no switchable resources configured");
         }
 
         /// <summary>

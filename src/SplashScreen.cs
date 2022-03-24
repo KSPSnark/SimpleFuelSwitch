@@ -30,7 +30,10 @@ namespace SimpleFuelSwitch
             "theonegalen",      // nice suggestion about LFO tank variants
             "ExtremeSquared",   // bug report for v1.1.2
             "Tonka Crash",      // bug report for v1.3
-            "JPLRepo"           // helpful bug-fixing advice
+            "JPLRepo",          // helpful bug-fixing advice
+            "VTOL Frog",        // spotted that I missed the big-S wing strake
+            "Krazy1",           // useful bug report about mod blowing up when misconfigured
+            "Vspace"            // helpfully providing a French translation
         };
 
         internal void Awake()

@@ -1,3 +1,10 @@
+Version 1.4.1 (2022-03-24)
+* Add config for the big-S wing strake. Thanks to VTOL Frog for pointing out the oversight.
+* Fix a bug in which ModuleSimpleFuelSwitch would blow up if no ModuleSwitchableResources is configured. Thanks to Krazy1 for reporting.
+* Added French localization. Thank you to Vspace for generously providing!
+* Change the display of units and mass (in the info panel in the editor) to track the max amount of resources rather than the configured amount. (Relevant for resource containers that are, for example, empty by default.)
+* Update to ModuleManager 4.2.1.
+
 Version 1.4  (2019-10-16)
 * Updated for KSP 1.8 compatibility.
 * Includes update to ModuleManager 4.1.0.
