@@ -31,6 +31,7 @@ namespace SimpleFuelSwitch
             "ExtremeSquared",   // bug report for v1.1.2
             "Tonka Crash",      // bug report for v1.3
             "JPLRepo",          // helpful bug-fixing advice
+            "Sqeep91",          // helpfully providing a German translation
             "VTOL Frog",        // spotted that I missed the big-S wing strake
             "Krazy1",           // useful bug report about mod blowing up when misconfigured
             "Vspace"            // helpfully providing a French translation

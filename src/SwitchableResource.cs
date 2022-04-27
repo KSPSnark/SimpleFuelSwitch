@@ -64,6 +64,14 @@ namespace SimpleFuelSwitch
             return CreateResourceNode(definition.name, amount, maxAmount);
         }
 
+        public double MaxCost
+        {
+            get
+            {
+                return maxAmount * definition.unitCost;
+            }
+        }
+
         /// <summary>
         /// Create a resource node with the specified name and amounts.
         /// </summary>

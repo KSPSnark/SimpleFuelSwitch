@@ -5,7 +5,7 @@
     /// The PartModule config will list one or more RESOURCE_OPTION sections, each of which has syntax
     /// similar to a stock RESOURCE block (i.e. you define name, amount, maxAmount).
     /// </summary>
-    public class ModuleSimpleFuelSwitch : PartModule
+    public class ModuleSimpleFuelSwitch : PartModule, IPartCostModifier
     {
         // Placeholder for when config doesn't provide an (optional) string value.
         private const string DEFAULT_FLAG = "_default";
@@ -142,12 +142,19 @@
                 LogInactiveWarning();
                 return;
             }
-            if (currentResourcesId == DEFAULT_FLAG)
-            {
-                currentResourcesId = availableResources.DefaultResourcesId;
-            }
+            SwitchableResourceSet.UpdatePartResourceList(part, CurrentResourcesId, false);
+        }
 
-            SwitchableResourceSet.UpdatePartResourceList(part, currentResourcesId, false);
+        private string CurrentResourcesId
+        {
+            get
+            {
+                if (currentResourcesId == DEFAULT_FLAG)
+                {
+                    currentResourcesId = availableResources.DefaultResourcesId;
+                }
+                return currentResourcesId;
+            }
         }
 
         /// <summary>
@@ -350,6 +357,26 @@
             }
             part.ResetSimulation();
             return true;
+        }
+
+        /// <summary>
+        /// Adjust the cost of a full tank, based on the cost of which resources are currently selected therein.
+        /// </summary>
+        /// <param name="defaultCost"></param>
+        /// <param name="sit"></param>
+        /// <returns></returns>
+        /// <exception cref="NotImplementedException"></exception>
+        public float GetModuleCost(float defaultCost, ModifierStagingSituation sit)
+        {
+            if (!InitializeAvailableResources()) return 0f;
+            float defaultResourcesCost = availableResources[availableResources.DefaultResourcesId].resourcesCost;
+            float currentResourcesCost = availableResources[CurrentResourcesId].resourcesCost;
+            return currentResourcesCost - defaultResourcesCost;
+        }
+
+        public ModifierChangeWhen GetModuleCostChangeWhen()
+        {
+            return ModifierChangeWhen.CONSTANTLY;
         }
     }
 }

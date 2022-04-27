@@ -293,6 +293,11 @@ namespace SimpleFuelSwitch
             public readonly SwitchableResource[] resources;
 
             /// <summary>
+            /// The cost of the max amount of all resources for this selection.
+            /// </summary>
+            public readonly float resourcesCost;
+
+            /// <summary>
             /// Try to find the switchable resource with the specified name, or null if not found.
             /// </summary>
             /// <param name="resourceName"></param>
@@ -316,6 +321,13 @@ namespace SimpleFuelSwitch
                 this.displayName = displayName;
                 this.linkedVariants = linkedVariants;
                 this.resources = resources;
+
+                double totalCost = 0.0;
+                for (int i = 0;i < resources.Length; ++i)
+                {
+                    totalCost += resources[i].MaxCost;
+                }
+                this.resourcesCost = (float)totalCost;
             }
         }
     }
